@@ -1,0 +1,54 @@
+2026-01-27 17:24:21,620 - gitcode_mcp - INFO - GitCode MCP服务器模块初始化...
+2026-01-27 17:24:21,620 - gitcode_mcp - INFO - 环境变量已加载
+2026-01-27 17:24:21,624 - gitcode_mcp - INFO - FastMCP实例已创建，名称: GitCode MCP服务器
+2026-01-27 17:24:21,641 - gitcode_mcp.__main__ - INFO - 正在初始化GitCode MCP服务器...
+2026-01-27 17:24:21,641 - gitcode_mcp - INFO - 正在启动GitCode MCP服务器...
+2026-01-27 17:24:21,641 - gitcode_mcp - INFO - GitCode API客户端已初始化
+2026-01-27 17:24:21,641 - gitcode_mcp - INFO - API客户端已初始化，准备启动服务器...
+2026-01-27 17:24:21,647 - gitcode_mcp - INFO - API客户端已关闭
+2026-01-27 17:24:58,075 - gitcode_mcp - INFO - GitCode MCP服务器模块初始化...
+2026-01-27 17:24:58,075 - gitcode_mcp - INFO - 环境变量已加载
+2026-01-27 17:24:58,079 - gitcode_mcp - INFO - FastMCP实例已创建，名称: GitCode MCP服务器
+2026-01-27 17:24:58,095 - gitcode_mcp.__main__ - INFO - 正在初始化GitCode MCP服务器...
+2026-01-27 17:24:58,095 - gitcode_mcp - INFO - 正在启动GitCode MCP服务器...
+2026-01-27 17:24:58,095 - gitcode_mcp - INFO - GitCode API客户端已初始化
+2026-01-27 17:24:58,095 - gitcode_mcp - INFO - API客户端已初始化，准备启动服务器...
+2026-01-27 17:24:58,100 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-01-27 17:24:58,101 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-01-27 17:25:12,406 - gitcode_mcp - INFO - API客户端已关闭
+2026-01-27 17:25:27,014 - gitcode_mcp - INFO - GitCode MCP服务器模块初始化...
+2026-01-27 17:25:27,014 - gitcode_mcp - INFO - 环境变量已加载
+2026-01-27 17:25:27,017 - gitcode_mcp - INFO - FastMCP实例已创建，名称: GitCode MCP服务器
+2026-01-27 17:25:27,034 - gitcode_mcp.__main__ - INFO - 正在初始化GitCode MCP服务器...
+2026-01-27 17:25:27,034 - gitcode_mcp - INFO - 正在启动GitCode MCP服务器...
+2026-01-27 17:25:27,034 - gitcode_mcp - INFO - GitCode API客户端已初始化
+2026-01-27 17:25:27,034 - gitcode_mcp - INFO - API客户端已初始化，准备启动服务器...
+2026-01-27 17:25:27,040 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-01-27 17:25:27,040 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-01-27 17:25:27,041 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourceTemplatesRequest
+2026-01-27 17:25:27,042 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2026-01-27 17:26:37,970 - gitcode_mcp - INFO - API客户端已关闭
+2026-01-27 17:27:49,793 - gitcode_mcp - INFO - GitCode MCP服务器模块初始化...
+2026-01-27 17:27:49,794 - gitcode_mcp - INFO - 环境变量已加载
+2026-01-27 17:27:49,797 - gitcode_mcp - INFO - FastMCP实例已创建，名称: GitCode MCP服务器
+2026-01-27 17:27:49,813 - gitcode_mcp.__main__ - INFO - 正在初始化GitCode MCP服务器...
+2026-01-27 17:27:49,813 - gitcode_mcp - INFO - 正在启动GitCode MCP服务器...
+2026-01-27 17:27:49,813 - gitcode_mcp - INFO - GitCode API客户端已初始化
+2026-01-27 17:27:49,814 - gitcode_mcp - INFO - API客户端已初始化，准备启动服务器...
+2026-01-27 17:27:49,819 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2026-01-27 17:27:49,819 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-01-27 17:29:40,255 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:29:58,862 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:29:59,746 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:30:00,715 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:30:12,887 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:30:13,743 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:30:14,731 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:30:15,788 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:32:42,308 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:33:02,978 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:35:38,575 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-27 17:36:39,383 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-28 09:31:32,829 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-28 09:31:32,838 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-01-28 11:57:09,068 - gitcode_mcp - INFO - API客户端已关闭

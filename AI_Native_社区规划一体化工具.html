@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 社区规划一体化工具</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: #f0f4f8;
+  color: #1a1a2e;
+}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+  color: #fff;
+  padding: 28px 40px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+header h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+header p  { font-size: 12px; opacity: .65; }
+.tab-bar  { display: flex; gap: 6px; }
+.tab-btn  {
+  padding: 7px 18px; border-radius: 20px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 600; transition: all .2s;
+  background: rgba(255,255,255,.15); color: rgba(255,255,255,.75);
+}
+.tab-btn.active { background: #fff; color: #0f3460; }
+
+/* ── Layout ── */
+.page { display: none; padding: 28px 40px; max-width: 1360px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── Card ── */
+.card {
+  background: #fff; border-radius: 14px;
+  padding: 24px 28px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+.card h2 { font-size: 14px; font-weight: 700; color: #0f3460; margin-bottom: 18px; }
+
+/* ── Grid helpers ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.mb { margin-bottom: 20px; }
+
+/* ── Sliders ── */
+.dim-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.dim-row .name { width: 110px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.dim-row input[type=range] { flex: 1; accent-color: #0f3460; height: 5px; cursor: pointer; }
+.dim-row .val {
+  width: 48px; text-align: center; font-size: 12px; font-weight: 700;
+  background: #f0f4ff; border-radius: 8px; padding: 3px 0; color: #0f3460;
+}
+.target-row input[type=range] { accent-color: #e63946; }
+.target-row .val { background: #fff0f1; color: #e63946; }
+.section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: #aaa; margin-bottom: 10px;
+}
+
+/* ── Score box ── */
+.score-box {
+  background: linear-gradient(135deg,#f0f4ff,#e8eeff);
+  border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 14px;
+}
+.score-num { font-size: 44px; font-weight: 800; color: #0f3460; line-height: 1; }
+.score-num span { font-size: 18px; opacity: .45; }
+.level-pill {
+  display: inline-block; padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; margin-top: 6px;
+}
+.level-sub { font-size: 11px; color: #777; margin-top: 6px; line-height: 1.5; }
+.gap-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
+.gap-bar-wrap { flex: 1; margin: 0 10px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+.gap-bar-cur { height: 100%; background: #0f3460; border-radius: 3px; }
+.gap-bar-tgt { height: 100%; background: #e63946; border-radius: 3px; opacity: .6; }
+
+/* ── Roadmap ── */
+.quarter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.q-card { border-radius: 10px; overflow: hidden; }
+.q-head {
+  padding: 10px 14px; font-size: 12px; font-weight: 800;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.q-body { padding: 12px 14px; background: #fff; }
+.initiative {
+  padding: 8px 10px; border-radius: 7px; margin-bottom: 6px;
+  font-size: 11px; line-height: 1.5; border-left: 3px solid transparent;
+}
+.initiative .dim-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.dim-tag {
+  font-size: 9.5px; padding: 1px 7px; border-radius: 10px;
+  font-weight: 700;
+}
+.score-delta { font-size: 10px; font-weight: 700; }
+.kpi-pill {
+  display: inline-block; background: #f5f5f5; border-radius: 6px;
+  font-size: 10px; padding: 3px 8px; margin: 2px; color: #555;
+}
+
+/* ── Dim detail panel ── */
+.dim-panel { display: none; }
+.dim-panel.open { display: block; }
+.dim-nav { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.dim-nav-btn {
+  padding: 6px 14px; border-radius: 20px; border: 2px solid #e5e7eb;
+  font-size: 12px; font-weight: 600; cursor: pointer; background: #fff;
+  transition: all .15s;
+}
+.dim-nav-btn.active { border-color: #0f3460; color: #0f3460; background: #f0f4ff; }
+.rubric-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 6px;
+  font-size: 12px; line-height: 1.6;
+}
+.rubric-row .score-dot {
+  width: 28px; height: 28px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  margin-top: 1px;
+}
+.rubric-row.current  { background: #eff6ff; }
+.rubric-row.target   { background: #fff5f5; }
+.rubric-row.achieved { background: #f0fdf4; }
+.initiative-link {
+  background: #f8f9ff; border-left: 3px solid #0f3460;
+  padding: 8px 12px; border-radius: 0 8px 8px 0;
+  font-size: 11.5px; margin-bottom: 6px; line-height: 1.6;
+}
+.initiative-link .q-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 7px;
+  border-radius: 10px; margin-right: 6px;
+}
+
+/* Quarter colors */
+.q1 { --qc: #6366f1; } .q2 { --qc: #0ea5e9; } .q3 { --qc: #10b981; } .q4 { --qc: #f59e0b; }
+.q-head.q1 { background: #eef2ff; color: #4338ca; }
+.q-head.q2 { background: #e0f2fe; color: #0369a1; }
+.q-head.q3 { background: #d1fae5; color: #065f46; }
+.q-head.q4 { background: #fef3c7; color: #92400e; }
+.initiative.q1 { background: #fafafa; border-left-color: #6366f1; }
+.initiative.q2 { background: #fafafa; border-left-color: #0ea5e9; }
+.initiative.q3 { background: #fafafa; border-left-color: #10b981; }
+.initiative.q4 { background: #fafafa; border-left-color: #f59e0b; }
+.q1-badge { background: #eef2ff; color: #4338ca; }
+.q2-badge { background: #e0f2fe; color: #0369a1; }
+.q3-badge { background: #d1fae5; color: #065f46; }
+.q4-badge { background: #fef3c7; color: #92400e; }
+
+/* Dim colors */
+.d0 { --dc: #6366f1; }
+.d1 { --dc: #0ea5e9; }
+.d2 { --dc: #10b981; }
+.d3 { --dc: #f59e0b; }
+.d4 { --dc: #e63946; }
+.dtag-0 { background:#eef2ff; color:#4338ca; }
+.dtag-1 { background:#e0f2fe; color:#0369a1; }
+.dtag-2 { background:#d1fae5; color:#065f46; }
+.dtag-3 { background:#fef3c7; color:#92400e; }
+.dtag-4 { background:#ffe4e6; color:#be123c; }
+
+@media(max-width:900px){
+  .g2,.g3,.quarter-grid{grid-template-columns:1fr;}
+  .page{padding:16px;}
+  header{flex-direction:column;gap:14px;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>AI Native 社区规划一体化工具</h1>
+    <p>成熟度评估 · 差距分析 · 季度路线图 · 维度深钻 — 四视图联动</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('assess')">📊 评估 & 差距</button>
+    <button class="tab-btn" onclick="switchTab('roadmap')">🗓 季度路线图</button>
+    <button class="tab-btn" onclick="switchTab('detail')">🔍 维度深钻</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════ TAB 1: 评估 & 差距 ═══════════════════════ -->
+<div class="page active" id="tab-assess">
+  <div class="g2 mb">
+
+    <!-- 左列：滑块 -->
+    <div class="card">
+      <h2>🎚 评分设定</h2>
+      <div class="section-label">当前状态（蓝色）</div>
+      <div id="cur-sliders"></div>
+      <div class="section-label" style="margin-top:18px;">2026年目标（红色）</div>
+      <div id="tgt-sliders"></div>
+    </div>
+
+    <!-- 右列：雷达图 -->
+    <div class="card">
+      <h2>🕸 成熟度雷达图</h2>
+      <div style="position:relative;height:340px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="rc"></canvas>
+      </div>
+      <div style="display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:11px;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:16px;height:3px;background:#0f3460;display:inline-block;border-radius:2px;"></span>当前评分</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:16px;height:3px;background:#e63946;display:inline-block;border-radius:2px;opacity:.7;"></span>2026目标</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:16px;height:3px;background:#94a3b8;display:inline-block;border-radius:2px;border-top:1px dashed #94a3b8;"></span>行业优秀L4</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <!-- 当前分数 -->
+    <div class="card">
+      <h2>📌 当前得分</h2>
+      <div class="score-box">
+        <div class="score-num" id="cur-total">15<span>/25</span></div>
+        <div class="level-pill" id="cur-level">L3 - 发展级</div>
+        <div class="level-sub" id="cur-desc">有系统性建设，大部分维度达到基本水平</div>
+      </div>
+      <div id="cur-dim-bars"></div>
+    </div>
+
+    <!-- 目标分数 -->
+    <div class="card">
+      <h2>🎯 2026年目标</h2>
+      <div class="score-box" style="background:linear-gradient(135deg,#fff5f5,#ffe4e6);">
+        <div class="score-num" id="tgt-total" style="color:#e63946;">20<span>/25</span></div>
+        <div class="level-pill" id="tgt-level" style="background:#ffe4e6;color:#be123c;">L4 - 成熟级</div>
+        <div class="level-sub" id="tgt-desc">AI Native 理念全面落地，开发者体验显著提升</div>
+      </div>
+      <div id="tgt-dim-bars"></div>
+    </div>
+
+    <!-- 差距分析 -->
+    <div class="card">
+      <h2>📈 差距与优先级</h2>
+      <div id="gap-analysis"></div>
+      <div style="margin-top:16px;padding:12px;background:#f8f9ff;border-radius:10px;">
+        <div style="font-size:11px;font-weight:700;color:#0f3460;margin-bottom:8px;">💡 最高优先级行动</div>
+        <div id="top-actions" style="font-size:11.5px;line-height:1.8;color:#444;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TAB 2: 季度路线图 ═══════════════════════ -->
+<div class="page" id="tab-roadmap">
+  <div class="card mb">
+    <h2>🗓 2026年季度路线图 — 与成熟度维度联动</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:16px;">每项行动标注影响的成熟度维度（可在「评估」页修改当前分数，路线图优先级将自动高亮）</p>
+    <div class="quarter-grid" id="roadmap-grid"></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h2>📊 各维度分季度提升预测</h2>
+      <div style="position:relative;height:260px;">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>✅ 北极星指标与 KPI 体系</h2>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:#0f3460;margin-bottom:6px;">⭐ 北极星指标</div>
+        <div style="background:#f0f4ff;border-radius:8px;padding:12px;font-size:12px;line-height:1.7;">
+          <strong>月新增首次贡献者数（Monthly First-time Contributors）</strong><br>
+          反映门槛降低效果 + AI时代新开发者吸引力的最直接指标
+        </div>
+      </div>
+      <div id="kpi-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TAB 3: 维度深钻 ═══════════════════════ -->
+<div class="page" id="tab-detail">
+  <div class="card mb">
+    <h2>🔍 选择维度深钻</h2>
+    <div class="dim-nav" id="dim-nav"></div>
+  </div>
+  <div id="dim-panels"></div>
+</div>
+
+<script>
+// ─────────── DATA ───────────
+const DIMS = [
+  { key:'r', label:'项目可读性',      emoji:'📄', color:'#6366f1', cls:'dtag-0',
+    desc:'项目文档结构化，AI工具能否准确理解项目',
+    rubric:[
+      '无README或内容极少；无贡献指南',
+      '有基础README，结构混乱；CONTRIBUTING缺失或过简',
+      'README结构完整（功能/安装/使用）；有CONTRIBUTING',
+      '有ARCHITECTURE/CHANGELOG；CONTRIBUTING含具体步骤',
+      '有CLAUDE.md/copilot-instructions；文档有专人定期维护'
+    ]
+  },
+  { key:'c', label:'贡献流程AI化',    emoji:'🔄', color:'#0ea5e9', cls:'dtag-1',
+    desc:'AI工具能辅助完成贡献流程的程度',
+    rubric:[
+      '无Issue/PR模板，无自动化',
+      '有基础模板；有简单CI检查',
+      'Good First Issue有规范标签；CI覆盖测试和Lint',
+      'GFI描述详细（背景/文件路径/完成标准）；AI Review Bot试点',
+      'GFI附AI辅助提示；AI Review全覆盖；PR平均响应<48h'
+    ]
+  },
+  { key:'d', label:'开发者体验',      emoji:'🧑‍💻', color:'#10b981', cls:'dtag-2',
+    desc:'AI编程工具用户的上手体验和引导质量',
+    rubric:[
+      '无新手引导，完全自行摸索',
+      '有基础文档，未针对AI工具用户设计',
+      '新手引导含AI工具内容；有Buddy/Mentor机制',
+      '有AI辅助贡献专属路径；提供Prompt/配置模板',
+      '新人用AI可在2h内完成首贡献；有数据验证'
+    ]
+  },
+  { key:'f', label:'内容可发现性',    emoji:'🔍', color:'#f59e0b', cls:'dtag-3',
+    desc:'社区内容被AI搜索工具检索和推荐的能力',
+    rubric:[
+      '文档散乱，无独立站点',
+      '有文档站，更新滞后，无SEO',
+      '文档完整清晰；GitHub Topics规范；基础SEO',
+      '内容高密度结构化；适配AI搜索写作规范',
+      '支持llms.txt；有证据被AI搜索引用；定期验证'
+    ]
+  },
+  { key:'u', label:'社区AI文化',      emoji:'🌱', color:'#e63946', cls:'dtag-4',
+    desc:'社区对AI辅助开发的包容度和推广力度',
+    rubric:[
+      '无明确立场；部分Maintainer排斥AI贡献',
+      '默许AI辅助，无政策，无活动',
+      '有AI辅助贡献政策；每季度有相关活动',
+      '积极推广；贡献认可包含文档/翻译等多元形式',
+      'AI时代新开发者占月新增贡献者≥30%；有数据'
+    ]
+  }
+];
+
+const INITIATIVES = [
+  // Q1
+  { q:1, title:'核心项目 CLAUDE.md 全面覆盖', dims:['r'], delta:[1,0,0,0,0],
+    desc:'为 Top 10 项目补全 CLAUDE.md、CONTRIBUTING.md、ARCHITECTURE.md',
+    kpis:['80%核心项目有完整CLAUDE.md','文档AI友好度评分≥4/5'] },
+  { q:1, title:'Good First Issue 质量升级', dims:['c'], delta:[0,1,0,0,0],
+    desc:'制定 Issue 模板标准（背景/文件路径/完成标准），批量改造存量 Issue',
+    kpis:['GFI平均描述评分≥4/5','GFI解决率≥50%'] },
+  { q:1, title:'GitHub Topics 标签规范化', dims:['f'], delta:[0,0,0,1,0],
+    desc:'统一所有社区项目的 Topics 标签，提升 AI 工具的项目发现权重',
+    kpis:['100%核心项目标签规范覆盖'] },
+  { q:1, title:'发布《AI 友好项目建设指南》', dims:['r','u'], delta:[0,0,0,0,1],
+    desc:'明确 AI 辅助贡献政策，公开项目 AI 友好度建设标准',
+    kpis:['指南发布并在所有核心项目引用'] },
+
+  // Q2
+  { q:2, title:'AI 辅助贡献新手引导页', dims:['d'], delta:[0,0,1,0,0],
+    desc:'专为"AI 工具用户"设计的入口页：工具推荐 → 项目配置 → 首个 Issue 路径',
+    kpis:['新注册→首贡献转化率+50%','新手引导完成率≥40%'] },
+  { q:2, title:'AI Review Bot 试点上线', dims:['c','d'], delta:[0,1,0,0,0],
+    desc:'在 2-3 个核心项目引入 CodeRabbit，缩短 PR 等待时间',
+    kpis:['PR平均首次响应<48h','PR一次通过率≥50%'] },
+  { q:2, title:'「AI 辅助贡献马拉松」Hackathon', dims:['u','d'], delta:[0,0,0,0,1],
+    desc:'48h 内提交真实 PR，AI 工具使用展示，覆盖新开发者群体',
+    kpis:['100+参与者','50+合并PR','新人占比≥40%'] },
+  { q:2, title:'文档站 AI 搜索优化', dims:['f'], delta:[0,0,0,1,0],
+    desc:'提升内容密度和结构化程度，适配 Perplexity/ChatGPT Search 引用偏好',
+    kpis:['文档站流量同比+60%'] },
+
+  // Q3
+  { q:3, title:'AI Review Bot 全面覆盖', dims:['c'], delta:[0,1,0,0,0],
+    desc:'将 AI Review Bot 推广至全部核心项目，建立 Review SLA 监控',
+    kpis:['所有核心项目覆盖','PR平均响应<48h'] },
+  { q:3, title:'贡献者实战案例库', dims:['d','f'], delta:[0,0,1,0,0],
+    desc:'收集 20+ 个"AI 辅助完成真实贡献"的 before/after 案例，作为常设引导资源',
+    kpis:['20+案例发布','案例页访问量'] },
+  { q:3, title:'年中开发者峰会（AI 辅助贡献专场）', dims:['u'], delta:[0,0,0,0,1],
+    desc:'设置 AI 辅助开发工作流分享专场，邀请贡献者分享真实经验',
+    kpis:['300+到场','10+演讲','满意度≥4.2/5'] },
+  { q:3, title:'发布《社区项目 AI 友好度报告》', dims:['r','f'], delta:[0,0,0,1,0],
+    desc:'公开各项目 AI 友好度评分，建立透明度，驱动维护者主动改善',
+    kpis:['报告覆盖全部核心项目','被10+媒体/AI工具引用'] },
+
+  // Q4
+  { q:4, title:'llms.txt 协议部署', dims:['f'], delta:[0,0,0,1,0],
+    desc:'在文档站部署 llms.txt，让 AI 爬虫更准确理解和引用社区内容',
+    kpis:['主流AI搜索工具引用次数建立基线'] },
+  { q:4, title:'多元贡献认可体系升级', dims:['u','d'], delta:[0,0,0,0,1],
+    desc:'将文档/翻译/Issue质量/答疑纳入正式贡献积分，颁发年度"AI时代贡献者"特别奖',
+    kpis:['非代码贡献者占比≥35%','贡献者多样性指数提升'] },
+  { q:4, title:'年度社区 AI Native 评估报告', dims:['r','c','d','f','u'], delta:[0,0,0,0,0],
+    desc:'对照成熟度模型做全年复盘，公开发布，驱动 2027 年规划',
+    kpis:['发布年度报告','完成2027路线图社区共创'] },
+  { q:4, title:'Buddy 配对计划扩大', dims:['d','u'], delta:[0,0,1,0,0],
+    desc:'将 Buddy 计划从试点扩展为常设机制，老贡献者带新 AI 时代开发者',
+    kpis:['Buddy计划满意度≥4.2/5','首贡献留存率≥35%'] }
+];
+
+const KPIS = [
+  { dim:0, label:'项目AI友好度评分',    target:'核心项目平均 ≥ 4/5',   freq:'季度' },
+  { dim:0, label:'CLAUDE.md覆盖率',     target:'80% 核心项目',          freq:'季度' },
+  { dim:1, label:'GFI 解决率',          target:'≥ 60%',                 freq:'月' },
+  { dim:1, label:'PR 平均响应时间',     target:'< 48 小时',             freq:'周' },
+  { dim:1, label:'PR 首次通过率',       target:'≥ 50%',                 freq:'月' },
+  { dim:2, label:'月新增首次贡献者',    target:'同比 +80%（⭐北极星）',  freq:'月' },
+  { dim:2, label:'新手引导完成率',      target:'≥ 40%',                 freq:'月' },
+  { dim:2, label:'贡献者留存率(3m)',    target:'≥ 35%',                 freq:'季度' },
+  { dim:3, label:'文档站有机流量',      target:'同比 +60%',             freq:'月' },
+  { dim:3, label:'AI搜索被引用次数',    target:'建立基线，持续增长',     freq:'季度' },
+  { dim:4, label:'社区 NPS',            target:'≥ 45',                  freq:'季度' },
+  { dim:4, label:'AI时代新开发者占比',  target:'月新增贡献者 ≥ 30%',    freq:'月' }
+];
+
+const LEVELS = [
+  { min:5,  max:8,  label:'L1 - 初始级', desc:'尚未系统化建设，建议优先补全基础文档和贡献指南', bg:'#fee2e2', fg:'#dc2626' },
+  { min:9,  max:12, label:'L2 - 探索级', desc:'已有零散尝试，建议选1-2个维度集中突破',         bg:'#fef3c7', fg:'#d97706' },
+  { min:13, max:17, label:'L3 - 发展级', desc:'有系统性建设，大部分维度达到基本水平',           bg:'#dbeafe', fg:'#2563eb' },
+  { min:18, max:21, label:'L4 - 成熟级', desc:'AI Native理念全面落地，开发者体验显著提升',     bg:'#d1fae5', fg:'#059669' },
+  { min:22, max:25, label:'L5 - 引领级', desc:'行业标杆，能输出最佳实践影响更大生态',           bg:'#ede9fe', fg:'#7c3aed' }
+];
+
+// ─────────── STATE ───────────
+const cur = [3,3,3,3,3];
+const tgt = [4,4,4,4,4];
+
+function getLevel(s){ return LEVELS.find(l=>s>=l.min&&s<=l.max)||LEVELS[0]; }
+function total(arr){ return arr.reduce((a,b)=>a+b,0); }
+
+// ─────────── BUILD SLIDERS ───────────
+function buildSliders(){
+  ['cur','tgt'].forEach(type=>{
+    const arr = type==='cur'?cur:tgt;
+    const el = document.getElementById(`${type}-sliders`);
+    el.innerHTML='';
+    DIMS.forEach((d,i)=>{
+      const row=document.createElement('div');
+      row.className=`dim-row ${type==='tgt'?'target-row':''}`;
+      row.innerHTML=`
+        <div class="name">${d.emoji} ${d.label}</div>
+        <input type="range" min="1" max="5" value="${arr[i]}" id="${type}-sl-${i}">
+        <div class="val" id="${type}-val-${i}">${arr[i]}</div>
+      `;
+      el.appendChild(row);
+      document.getElementById(`${type}-sl-${i}`).addEventListener('input',e=>{
+        arr[i]=+e.target.value;
+        document.getElementById(`${type}-val-${i}`).textContent=arr[i];
+        update();
+      });
+    });
+  });
+}
+
+// ─────────── RADAR CHART ───────────
+let rc;
+function buildRadar(){
+  rc=new Chart(document.getElementById('rc'),{
+    type:'radar',
+    data:{
+      labels:DIMS.map(d=>d.label),
+      datasets:[
+        { label:'当前评分', data:[...cur],
+          backgroundColor:'rgba(15,52,96,.12)', borderColor:'rgba(15,52,96,.9)',
+          borderWidth:2.5, pointBackgroundColor:'#0f3460', pointRadius:5 },
+        { label:'2026目标', data:[...tgt],
+          backgroundColor:'rgba(230,57,70,.08)', borderColor:'rgba(230,57,70,.7)',
+          borderWidth:2, pointBackgroundColor:'#e63946', pointRadius:4,
+          borderDash:[4,3] },
+        { label:'行业优秀L4', data:[4,4,4,4,4],
+          backgroundColor:'transparent', borderColor:'rgba(148,163,184,.5)',
+          borderWidth:1.5, borderDash:[6,4], pointRadius:0 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ r:{
+        min:0, max:5, ticks:{stepSize:1,font:{size:9},color:'#bbb'},
+        grid:{color:'rgba(0,0,0,.06)'}, angleLines:{color:'rgba(0,0,0,.07)'},
+        pointLabels:{font:{size:11,weight:'600'},color:'#333'}
+      }},
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ${c.raw}分` }}}
+    }
+  });
+}
+
+// ─────────── PROGRESS LINE CHART ───────────
+let pc;
+function buildProgressChart(){
+  // Simulate quarterly progression based on initiatives
+  const qDeltas=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+  INITIATIVES.forEach(ini=>{
+    ini.delta.forEach((d,i)=>{ qDeltas[ini.q-1][i]+=d; });
+  });
+  const series=DIMS.map((d,di)=>{
+    const pts=[cur[di]];
+    let v=cur[di];
+    qDeltas.forEach(dq=>{ v=Math.min(5,v+dq[di]); pts.push(v); });
+    return {label:d.label,data:pts,borderColor:d.color,backgroundColor:d.color+'22',
+      tension:.3,pointRadius:4,fill:false};
+  });
+  pc=new Chart(document.getElementById('progressChart'),{
+    type:'line',
+    data:{
+      labels:['现在','Q1末','Q2末','Q3末','Q4末'],
+      datasets:series
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{
+        y:{min:1,max:5,ticks:{stepSize:1,font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+        x:{ticks:{font:{size:11}}}
+      },
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}分`}}
+      }
+    }
+  });
+}
+
+// ─────────── ROADMAP ───────────
+function buildRoadmap(){
+  const qColors=['q1','q2','q3','q4'];
+  const qTitles=['Q1（夯实基础）','Q2（激活贡献）','Q3（深化沉淀）','Q4（总结展望）'];
+  const grid=document.getElementById('roadmap-grid');
+  grid.innerHTML='';
+  [1,2,3,4].forEach(q=>{
+    const col=document.createElement('div');
+    col.className='q-card';
+    const inits=INITIATIVES.filter(i=>i.q===q);
+    col.innerHTML=`
+      <div class="q-head ${qColors[q-1]}">${qTitles[q-1]}<span style="font-size:10px;">${inits.length}项行动</span></div>
+      <div class="q-body">
+        ${inits.map(ini=>`
+          <div class="initiative ${qColors[q-1]}">
+            <strong style="font-size:11.5px;">${ini.title}</strong>
+            <div style="color:#666;margin-top:3px;">${ini.desc}</div>
+            <div class="dim-tags">
+              ${ini.dims.map(dk=>{
+                const di=DIMS.findIndex(d=>d.key===dk);
+                return `<span class="dim-tag ${DIMS[di].cls}">${DIMS[di].emoji}${DIMS[di].label}</span>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    grid.appendChild(col);
+  });
+}
+
+// ─────────── KPI LIST ───────────
+function buildKpis(){
+  const el=document.getElementById('kpi-list');
+  el.innerHTML='';
+  const groups=[...new Set(KPIS.map(k=>k.dim))];
+  groups.forEach(di=>{
+    const dimKpis=KPIS.filter(k=>k.dim===di);
+    const d=DIMS[di];
+    el.innerHTML+=`<div style="font-size:11px;font-weight:700;color:${d.color};margin:10px 0 5px;">${d.emoji} ${d.label}</div>`;
+    dimKpis.forEach(k=>{
+      el.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:5px 8px;background:#f8f9ff;border-radius:6px;margin-bottom:4px;">
+        <span>${k.label}</span>
+        <span style="font-weight:700;color:#0f3460;font-size:10.5px;">${k.target}</span>
+        <span class="kpi-pill">${k.freq}追踪</span>
+      </div>`;
+    });
+  });
+}
+
+// ─────────── DIM DETAIL PANELS ───────────
+function buildDimNav(){
+  const nav=document.getElementById('dim-nav');
+  nav.innerHTML='';
+  DIMS.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='dim-nav-btn'+(i===0?' active':'');
+    btn.textContent=`${d.emoji} ${d.label}`;
+    btn.onclick=()=>showDim(i);
+    nav.appendChild(btn);
+  });
+}
+
+function showDim(idx){
+  document.querySelectorAll('.dim-nav-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.dim-panel').forEach((p,i)=>p.classList.toggle('open',i===idx));
+}
+
+function buildDimPanels(){
+  const container=document.getElementById('dim-panels');
+  container.innerHTML='';
+  DIMS.forEach((d,di)=>{
+    const panel=document.createElement('div');
+    panel.className='dim-panel'+(di===0?' open':'');
+
+    const relInits=INITIATIVES.filter(i=>i.dims.includes(d.key));
+
+    panel.innerHTML=`
+      <div class="g2">
+        <div class="card">
+          <h2>${d.emoji} ${d.label} — 评分细则</h2>
+          <p style="font-size:12px;color:#888;margin-bottom:14px;">${d.desc}</p>
+          ${d.rubric.map((r,i)=>{
+            const score=i+1;
+            const isCur=score===cur[di], isTgt=score===tgt[di];
+            const isAchieved=score<cur[di];
+            let cls='', badge='';
+            if(isCur){ cls='current'; badge='<span style="background:#dbeafe;color:#1d4ed8;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:6px;">当前</span>'; }
+            if(isTgt){ cls='target'; badge='<span style="background:#ffe4e6;color:#be123c;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:6px;">目标</span>'; }
+            if(isAchieved){ cls='achieved'; }
+            return `<div class="rubric-row ${cls}">
+              <div class="score-dot" style="background:${score<=cur[di]?d.color+'22':'#f1f5f9'};color:${score<=cur[di]?d.color:'#aaa'};">${score}</div>
+              <div>${r}${badge}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div>
+          <div class="card mb">
+            <h2>🗓 关联行动计划</h2>
+            ${relInits.length===0?'<p style="font-size:12px;color:#aaa;">暂无直接关联行动</p>':
+              relInits.map(ini=>{
+                const qCls=['q1-badge','q2-badge','q3-badge','q4-badge'][ini.q-1];
+                return `<div class="initiative-link">
+                  <span class="q-badge ${qCls}">Q${ini.q}</span>
+                  <strong>${ini.title}</strong><br>
+                  <span style="color:#666;">${ini.desc}</span>
+                  <div style="margin-top:5px;">${ini.kpis.map(k=>`<span class="kpi-pill">${k}</span>`).join('')}</div>
+                </div>`;
+              }).join('')
+            }
+          </div>
+          <div class="card">
+            <h2>📊 关联 KPI</h2>
+            ${KPIS.filter(k=>k.dim===di).map(k=>`
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:7px 10px;background:#f8f9ff;border-radius:7px;margin-bottom:6px;">
+                <span style="font-weight:600;">${k.label}</span>
+                <div style="text-align:right;">
+                  <div style="font-weight:700;color:#0f3460;font-size:11px;">${k.target}</div>
+                  <div style="font-size:10px;color:#aaa;">${k.freq}追踪</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(panel);
+  });
+}
+
+// ─────────── UPDATE ───────────
+function update(){
+  // Radar
+  rc.data.datasets[0].data=[...cur];
+  rc.data.datasets[1].data=[...tgt];
+  rc.update('active');
+
+  // Totals
+  const ct=total(cur), tt=total(tgt);
+  const cl=getLevel(ct), tl=getLevel(tt);
+  document.getElementById('cur-total').innerHTML=`${ct}<span>/25</span>`;
+  const cl2=document.getElementById('cur-level');
+  cl2.textContent=cl.label; cl2.style.background=cl.bg; cl2.style.color=cl.fg;
+  document.getElementById('cur-desc').textContent=cl.desc;
+  document.getElementById('tgt-total').innerHTML=`${tt}<span>/25</span>`;
+  const tl2=document.getElementById('tgt-level');
+  tl2.textContent=tl.label; tl2.style.background=tl.bg; tl2.style.color=tl.fg;
+  document.getElementById('tgt-desc').textContent=tl.desc;
+
+  // Dim bars
+  ['cur','tgt'].forEach(type=>{
+    const arr=type==='cur'?cur:tgt;
+    const el=document.getElementById(`${type}-dim-bars`);
+    el.innerHTML=DIMS.map((d,i)=>`
+      <div class="gap-row">
+        <span style="width:90px;font-size:11px;font-weight:600;">${d.emoji} ${d.label}</span>
+        <div class="gap-bar-wrap"><div class="${type==='cur'?'gap-bar-cur':'gap-bar-tgt'}" style="width:${arr[i]/5*100}%;background:${d.color};"></div></div>
+        <span style="font-size:11px;font-weight:700;color:${d.color};width:20px;">${arr[i]}</span>
+      </div>
+    `).join('');
+  });
+
+  // Gap analysis
+  const gaps=DIMS.map((d,i)=>({d,i,gap:tgt[i]-cur[i]})).sort((a,b)=>b.gap-a.gap);
+  document.getElementById('gap-analysis').innerHTML=gaps.map(g=>`
+    <div class="gap-row">
+      <span style="width:100px;font-size:11px;font-weight:600;">${g.d.emoji} ${g.d.label}</span>
+      <div class="gap-bar-wrap" style="position:relative;height:8px;">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${cur[g.i]/5*100}%;background:${g.d.color};border-radius:3px;opacity:.7;"></div>
+        <div style="position:absolute;left:${cur[g.i]/5*100}%;top:0;height:100%;width:${g.gap/5*100}%;background:${g.d.color};border-radius:3px;opacity:.3;"></div>
+      </div>
+      <span style="font-size:11px;font-weight:700;color:${g.gap>0?g.d.color:'#10b981'};width:40px;text-align:right;">
+        ${g.gap>0?'+'+g.gap:g.gap===0?'✓':g.gap}
+      </span>
+    </div>
+  `).join('');
+
+  // Top actions
+  const topGaps=gaps.filter(g=>g.gap>0).slice(0,3);
+  document.getElementById('top-actions').innerHTML=topGaps.map((g,rank)=>{
+    const relInit=INITIATIVES.filter(i=>i.dims.includes(g.d.key))[0];
+    return `${rank+1}. <strong>${g.d.label}</strong>（差距 +${g.gap}）→ ${relInit?relInit.title:'补充专项行动'}`;
+  }).join('<br>') || '<span style="color:#10b981;">✓ 所有维度已达目标！</span>';
+
+  // Progress chart
+  const qDeltas=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+  INITIATIVES.forEach(ini=>{ ini.delta.forEach((d,i)=>{ qDeltas[ini.q-1][i]+=d; }); });
+  pc.data.datasets.forEach((ds,di)=>{
+    const pts=[cur[di]]; let v=cur[di];
+    qDeltas.forEach(dq=>{ v=Math.min(5,Math.max(cur[di],v+dq[di])); pts.push(v); });
+    ds.data=pts;
+  });
+  pc.update('active');
+
+  // Rebuild dim panels with updated scores
+  buildDimPanels();
+  buildDimNav();
+  const activeIdx=[...document.querySelectorAll('.dim-nav-btn')].findIndex(b=>b.classList.contains('active'));
+  if(activeIdx>=0) showDim(activeIdx);
+}
+
+// ─────────── TAB SWITCH ───────────
+function switchTab(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ─────────── INIT ───────────
+buildSliders();
+buildRadar();
+buildProgressChart();
+buildRoadmap();
+buildKpis();
+buildDimNav();
+buildDimPanels();
+update();
+</script>
+</body>
+</html>

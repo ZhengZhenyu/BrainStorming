@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 社区规划一体化工具 v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;background:#f0f4f8;color:#1a1a2e;}
+
+header{background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:#fff;padding:24px 36px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+header h1{font-size:19px;font-weight:800;margin-bottom:4px;}
+header p{font-size:12px;opacity:.6;}
+.tab-bar{display:flex;gap:6px;}
+.tab-btn{padding:7px 16px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:rgba(255,255,255,.15);color:rgba(255,255,255,.75);transition:all .2s;}
+.tab-btn.active{background:#fff;color:#0f3460;}
+
+.page{display:none;padding:24px 36px;max-width:1360px;margin:0 auto;}
+.page.active{display:block;}
+.card{background:#fff;border-radius:14px;padding:22px 26px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.card h2{font-size:14px;font-weight:700;color:#0f3460;margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.mb{margin-bottom:18px;}
+.sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#aaa;margin-bottom:8px;}
+
+/* ── Pillar header ── */
+.pillar-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:12px;}
+.pillar-header .pillar-icon{font-size:20px;}
+.pillar-header .pillar-name{font-size:13px;font-weight:800;}
+.pillar-header .pillar-sub{font-size:11px;opacity:.75;margin-top:2px;}
+
+/* ── Sliders ── */
+.dim-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.dim-row .name{width:106px;font-size:11.5px;font-weight:600;flex-shrink:0;line-height:1.35;}
+.dim-row input[type=range]{flex:1;accent-color:#0f3460;height:5px;cursor:pointer;}
+.dim-row .val{width:44px;text-align:center;font-size:12px;font-weight:700;background:#f0f4ff;border-radius:8px;padding:2px 0;color:#0f3460;}
+.tgt-row input[type=range]{accent-color:#e63946;}
+.tgt-row .val{background:#fff0f1;color:#e63946;}
+.pillar-divider{border-top:1px solid #f1f5f9;margin:14px 0 12px;}
+
+/* ── Score box ── */
+.score-box{background:linear-gradient(135deg,#f0f4ff,#e8eeff);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;}
+.score-num{font-size:42px;font-weight:800;color:#0f3460;line-height:1;}
+.score-num span{font-size:17px;opacity:.4;}
+.level-pill{display:inline-block;padding:3px 13px;border-radius:20px;font-size:12px;font-weight:700;margin-top:5px;}
+.level-sub{font-size:11px;color:#777;margin-top:5px;line-height:1.5;}
+
+/* ── Gap bars ── */
+.gap-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.gap-bar-wrap{flex:1;height:7px;background:#eee;border-radius:4px;overflow:hidden;position:relative;}
+.gap-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+
+/* ── Pillar score cards ── */
+.pillar-score-row{display:flex;gap:12px;margin-bottom:16px;}
+.pillar-score-card{flex:1;border-radius:10px;padding:12px 14px;text-align:center;}
+.pillar-score-card .ps-num{font-size:24px;font-weight:800;line-height:1;}
+.pillar-score-card .ps-label{font-size:10px;font-weight:700;margin-top:3px;opacity:.8;}
+.pillar-score-card .ps-max{font-size:10px;opacity:.5;}
+
+/* ── Quarter roadmap ── */
+.q-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.q-card{border-radius:10px;overflow:hidden;}
+.q-head{padding:10px 14px;font-size:12px;font-weight:800;display:flex;justify-content:space-between;align-items:center;}
+.q-body{padding:12px 14px;background:#fff;}
+.initiative{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:11px;line-height:1.5;border-left:3px solid transparent;}
+.pillar-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.pillar-tag{font-size:9.5px;padding:1px 7px;border-radius:10px;font-weight:700;}
+.kpi-chip{display:inline-block;background:#f5f5f5;border-radius:5px;font-size:10px;padding:2px 7px;margin:2px;color:#555;}
+
+/* ── Detail panel ── */
+.dim-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.dim-nav-btn{padding:5px 13px;border-radius:20px;border:2px solid #e5e7eb;font-size:11.5px;font-weight:600;cursor:pointer;background:#fff;transition:all .15s;}
+.dim-nav-btn.active{border-color:#0f3460;color:#0f3460;background:#f0f4ff;}
+.rubric-row{display:flex;align-items:flex-start;gap:11px;padding:9px 11px;border-radius:8px;margin-bottom:5px;font-size:12px;line-height:1.6;}
+.rubric-row .sdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;}
+.rubric-row.cur-row{background:#eff6ff;}
+.rubric-row.tgt-row{background:#fff5f5;}
+.rubric-row.done-row{background:#f0fdf4;}
+.ini-link{background:#f8f9ff;border-left:3px solid #0f3460;padding:8px 12px;border-radius:0 8px 8px 0;font-size:11.5px;margin-bottom:6px;line-height:1.6;}
+.ini-link .qb{font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px;}
+.dim-panel{display:none;}
+.dim-panel.open{display:block;}
+
+/* ── Pillar colors ── */
+/* 可发现: indigo/blue */
+.p0{--pc:#4f46e5;} .p0bg{background:#eef2ff;} .p0fg{color:#4338ca;}
+/* 可应用: teal/green */
+.p1{--pc:#0d9488;} .p1bg{background:#f0fdfa;} .p1fg{color:#0f766e;}
+/* 可共建: amber/orange */
+.p2{--pc:#d97706;} .p2bg{background:#fffbeb;} .p2fg{color:#b45309;}
+
+/* Dim index colors */
+.dc0{color:#4f46e5;} .dc1{color:#6366f1;}
+.dc2{color:#0d9488;} .dc3{color:#14b8a6;}
+.dc4{color:#d97706;}
+.dbg0{background:#eef2ff;} .dbg1{background:#f0f4ff;}
+.dbg2{background:#f0fdfa;} .dbg3{background:#f0fdf8;}
+.dbg4{background:#fffbeb;}
+
+/* Q colors */
+.q1h{background:#eef2ff;color:#4338ca;} .q1i{border-left-color:#6366f1;background:#fafafa;}
+.q2h{background:#e0f2fe;color:#0369a1;} .q2i{border-left-color:#0ea5e9;background:#fafafa;}
+.q3h{background:#d1fae5;color:#065f46;} .q3i{border-left-color:#10b981;background:#fafafa;}
+.q4h{background:#fef3c7;color:#92400e;} .q4i{border-left-color:#f59e0b;background:#fafafa;}
+.qb1{background:#eef2ff;color:#4338ca;} .qb2{background:#e0f2fe;color:#0369a1;}
+.qb3{background:#d1fae5;color:#065f46;} .qb4{background:#fef3c7;color:#92400e;}
+
+@media(max-width:900px){.g2,.g3,.q-grid{grid-template-columns:1fr;}.page{padding:14px;}.pillar-score-row{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>AI Native 社区规划一体化工具 v2</h1>
+    <p>成熟度评估 · 三支柱对齐 · 季度路线图 · 维度深钻 — 以运营计划为基准</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('assess',this)">📊 评估 & 差距</button>
+    <button class="tab-btn" onclick="switchTab('roadmap',this)">🗓 季度路线图</button>
+    <button class="tab-btn" onclick="switchTab('detail',this)">🔍 维度深钻</button>
+  </div>
+</header>
+
+<!-- ══════════ TAB 1 ══════════ -->
+<div class="page active" id="tab-assess">
+  <div class="g2 mb">
+
+    <div class="card">
+      <h2>🎚 评分设定</h2>
+      <div class="sec-label">当前状态（蓝色）</div>
+      <div id="cur-sliders"></div>
+      <div class="sec-label" style="margin-top:16px;">2026年目标（红色）</div>
+      <div id="tgt-sliders"></div>
+    </div>
+
+    <div class="card">
+      <h2>🕸 成熟度雷达图</h2>
+      <div style="position:relative;height:330px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="rc"></canvas>
+      </div>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:10px;font-size:11px;flex-wrap:wrap;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;background:#0f3460;display:inline-block;border-radius:2px;"></span>当前</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;background:#e63946;display:inline-block;border-radius:2px;opacity:.7;"></span>目标</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:3px;background:#94a3b8;display:inline-block;border-radius:2px;border-top:1px dashed #94a3b8;"></span>行业优秀L4</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3 mb">
+    <div class="card">
+      <h2>📌 综合得分</h2>
+      <div class="score-box">
+        <div class="score-num" id="cur-total">15<span>/25</span></div>
+        <div class="level-pill" id="cur-level">L3 - 发展级</div>
+        <div class="level-sub" id="cur-desc"></div>
+      </div>
+      <div id="pillar-cur-scores"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 2026年目标</h2>
+      <div class="score-box" style="background:linear-gradient(135deg,#fff5f5,#ffe4e6);">
+        <div class="score-num" id="tgt-total" style="color:#e63946;">20<span>/25</span></div>
+        <div class="level-pill" id="tgt-level"></div>
+        <div class="level-sub" id="tgt-desc"></div>
+      </div>
+      <div id="pillar-tgt-scores"></div>
+    </div>
+
+    <div class="card">
+      <h2>📈 差距与优先行动</h2>
+      <div id="gap-analysis"></div>
+      <div style="margin-top:14px;padding:12px;background:#f8f9ff;border-radius:10px;">
+        <div style="font-size:11px;font-weight:700;color:#0f3460;margin-bottom:7px;">💡 当前最高优先级</div>
+        <div id="top-actions" style="font-size:11.5px;line-height:1.9;color:#444;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 三支柱 KPI 预览 -->
+  <div class="card">
+    <h2>⭐ 北极星指标 & 三支柱 KPI 体系</h2>
+    <div style="background:#f0f4ff;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;line-height:1.7;">
+      <strong style="color:#0f3460;">北极星：月新增首次贡献者数（Monthly First-time Contributors）</strong><br>
+      <span style="color:#666;">直接衡量"可应用+可共建"的综合效果——门槛是否真正降低，新开发者是否进来并留下来。</span>
+    </div>
+    <div id="kpi-preview"></div>
+  </div>
+</div>
+
+<!-- ══════════ TAB 2 ══════════ -->
+<div class="page" id="tab-roadmap">
+  <div class="card mb">
+    <h2>🗓 2026年季度路线图 — 直接映射至三支柱</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:14px;">每项行动标注所属支柱；差距越大的支柱，对应行动自动高亮边框</p>
+    <div class="q-grid" id="roadmap-grid"></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h2>📊 三支柱分季度提升预测</h2>
+      <div style="position:relative;height:260px;"><canvas id="progressChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>📋 成熟度等级说明</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="background:#f5f7fa;">
+          <th style="padding:8px 10px;text-align:left;font-weight:700;color:#555;">等级</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700;color:#555;">分值</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700;color:#555;">描述</th>
+        </tr></thead>
+        <tbody id="level-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TAB 3 ══════════ -->
+<div class="page" id="tab-detail">
+  <div class="card mb">
+    <h2>🔍 维度深钻 — 选择查看</h2>
+    <div class="dim-nav" id="dim-nav"></div>
+  </div>
+  <div id="dim-panels"></div>
+</div>
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+
+const PILLARS = [
+  { key:'discover', label:'可发现', emoji:'🔍', color:'#4f46e5',
+    bg:'#eef2ff', fg:'#4338ca', lightbg:'#f5f7ff',
+    desc:'社区项目对AI工具友好，开发者通过AI工具能准确发现并理解社区项目' },
+  { key:'apply',    label:'可应用', emoji:'⚙️', color:'#0d9488',
+    bg:'#f0fdfa', fg:'#0f766e', lightbg:'#f5fffe',
+    desc:'AI工具能帮助开发者降低贡献门槛，走完从理解代码到提交PR的完整流程' },
+  { key:'build',    label:'可共建', emoji:'🤝', color:'#d97706',
+    bg:'#fffbeb', fg:'#b45309', lightbg:'#fffdf5',
+    desc:'吸引AI时代新一代开发者持续参与贡献，形成多元健康的贡献者生态' }
+];
+
+// 5 dimensions mapped to 3 pillars
+const DIMS = [
+  // 可发现 (2 dims)
+  { key:'d1', pillar:0, label:'项目AI友好度', emoji:'📄',
+    desc:'项目文档和上下文文件的完整性，让AI工具能准确理解项目约定',
+    color:'#4f46e5', bgcls:'dbg0', fgcls:'dc0',
+    rubric:[
+      '无README或内容极少；无CONTRIBUTING.md',
+      '有基础README，结构混乱；CONTRIBUTING过于简单',
+      'README结构完整（功能/安装/使用）；有清晰的CONTRIBUTING',
+      '有ARCHITECTURE.md、CHANGELOG；CONTRIBUTING含具体文件路径和步骤',
+      '有CLAUDE.md/copilot-instructions；所有核心项目文档有专人维护机制'
+    ],
+    kpis:[
+      { label:'CLAUDE.md覆盖率', target:'≥80%核心项目', freq:'季度', from:'可发现·项目可读性' },
+      { label:'项目AI友好度评分', target:'平均≥4/5', freq:'季度', from:'可发现·项目可读性' }
+    ]
+  },
+  { key:'d2', pillar:0, label:'内容AI可检索性', emoji:'🔎',
+    desc:'社区文档被AI搜索工具检索和引用的能力',
+    color:'#6366f1', bgcls:'dbg1', fgcls:'dc1',
+    rubric:[
+      '无独立文档站点；内容散乱无结构',
+      '有文档站但更新滞后；GitHub Topics未规范',
+      '文档站内容完整清晰；GitHub Topics规范；有基础SEO',
+      '内容高密度结构化（少空话多步骤）；适配AI搜索引用偏好',
+      '部署llms.txt协议；有证据被Perplexity/ChatGPT等AI搜索引用；定期验证'
+    ],
+    kpis:[
+      { label:'文档站有机流量', target:'同比+60%', freq:'月度', from:'可发现·内容可发现性' },
+      { label:'AI搜索被引用次数', target:'建立基线并持续增长', freq:'季度', from:'可发现·内容可发现性' },
+      { label:'GitHub Topics规范覆盖', target:'100%核心项目', freq:'季度', from:'可发现·内容可发现性' }
+    ]
+  },
+  // 可应用 (2 dims)
+  { key:'d3', pillar:1, label:'贡献入口质量', emoji:'🚪',
+    desc:'Good First Issue和PR流程对AI辅助开发者的友好程度',
+    color:'#0d9488', bgcls:'dbg2', fgcls:'dc2',
+    rubric:[
+      '无Issue/PR模板；GFI标签混乱或缺失；无自动化CI',
+      '有基础模板；GFI有标签但描述简单；有基础CI',
+      'GFI描述规范（背景/预期/复现步骤）；CI覆盖测试和Lint',
+      'GFI包含具体文件路径和完成标准；有PR示例集；AI Review Bot试点',
+      'GFI附"AI辅助提示词示例"；AI Review全覆盖；PR平均首次响应<48h'
+    ],
+    kpis:[
+      { label:'Good First Issue解决率', target:'≥60%', freq:'月度', from:'可应用·贡献流程AI化' },
+      { label:'Issue→PR转化率', target:'≥50%', freq:'月度', from:'可应用·贡献流程AI化' },
+      { label:'PR首次通过率', target:'≥50%', freq:'月度', from:'可应用·贡献流程AI化' },
+      { label:'PR平均Review响应时间', target:'<48小时', freq:'周度', from:'可应用·贡献流程AI化' }
+    ]
+  },
+  { key:'d4', pillar:1, label:'开发者上手体验', emoji:'🧑‍💻',
+    desc:'AI工具用户从0到首次贡献的完整路径体验',
+    color:'#14b8a6', bgcls:'dbg3', fgcls:'dc3',
+    rubric:[
+      '无专门新手引导；新人完全自行摸索',
+      '有基础文档，未针对AI工具使用者设计',
+      '新手引导含AI工具推荐和配置说明；有Buddy/Mentor机制',
+      '有"AI辅助贡献"专属上手路径；提供Prompt参考模板；有实战案例库',
+      '全流程实测：新人借助AI可在2h内完成首贡献；有数据持续追踪'
+    ],
+    kpis:[
+      { label:'新手引导完成率', target:'≥40%', freq:'月度', from:'可应用·开发者体验' },
+      { label:'Buddy计划满意度', target:'≥4.2/5', freq:'季度', from:'可应用·开发者体验' }
+    ]
+  },
+  // 可共建 (1 dim)
+  { key:'d5', pillar:2, label:'新开发者吸引与留存', emoji:'🌱',
+    desc:'社区吸引AI时代新开发者并使其持续贡献的能力',
+    color:'#d97706', bgcls:'dbg4', fgcls:'dc4',
+    rubric:[
+      '无明确AI贡献政策；新开发者进来后迅速流失',
+      '默许AI辅助贡献，无政策；贡献认可形式单一（仅代码）',
+      '有AI辅助贡献政策；贡献认可扩展至文档/翻译/Issue质量；每季度有相关活动',
+      '积极推广AI辅助贡献；Buddy计划成熟；非代码贡献者占比≥25%',
+      'AI时代新开发者（1-3年经验）占月新增贡献者≥30%；贡献者留存率≥35%'
+    ],
+    kpis:[
+      { label:'月新增首次贡献者数', target:'同比+80%（⭐北极星）', freq:'月度', from:'可共建·新开发者吸引' },
+      { label:'贡献者留存率(3个月)', target:'≥35%', freq:'季度', from:'可共建·新开发者留存' },
+      { label:'AI时代新开发者占比', target:'月新增贡献者≥30%', freq:'月度', from:'可共建·多样性' },
+      { label:'非代码贡献者占比', target:'≥35%', freq:'季度', from:'可共建·贡献多样性' },
+      { label:'社区NPS', target:'≥45', freq:'季度', from:'可共建·社区健康' },
+      { label:'Maintainer负担指数', target:'待处理PR/Issue不持续增长', freq:'月度', from:'可共建·社区健康' }
+    ]
+  }
+];
+
+// Quarterly initiatives — each tagged with pillar and dims
+const INITIATIVES = [
+  // Q1 基础建设
+  { q:1, title:'核心项目CLAUDE.md全面覆盖',
+    pillars:[0], dims:['d1'],
+    desc:'为Top 10项目补全CLAUDE.md、CONTRIBUTING、ARCHITECTURE.md',
+    kpis:['80%核心项目有CLAUDE.md','文档AI友好度≥4/5'] },
+  { q:1, title:'Good First Issue质量升级',
+    pillars:[1], dims:['d3'],
+    desc:'制定GFI模板标准（背景/文件路径/完成标准），批量改造存量Issue',
+    kpis:['GFI平均描述评分≥4/5','GFI解决率≥50%'] },
+  { q:1, title:'GitHub Topics标签规范化',
+    pillars:[0], dims:['d2'],
+    desc:'统一所有社区项目Tags，建立可发现性基线',
+    kpis:['100%核心项目标签覆盖'] },
+  { q:1, title:'发布《AI辅助贡献政策》',
+    pillars:[2], dims:['d5'],
+    desc:'明确允许AI辅助贡献，注明质量要求（不降低Review标准）',
+    kpis:['政策发布并在所有核心项目引用'] },
+
+  // Q2 激活贡献
+  { q:2, title:'AI辅助贡献新手引导页',
+    pillars:[1], dims:['d4'],
+    desc:'专为"AI工具用户"设计：工具推荐→项目CLAUDE.md配置→首个Issue路径',
+    kpis:['新注册→首贡献转化率+50%','引导完成率≥40%'] },
+  { q:2, title:'AI Review Bot试点上线',
+    pillars:[1], dims:['d3','d4'],
+    desc:'在2-3个核心项目引入CodeRabbit，缩短PR等待周期',
+    kpis:['PR平均响应<48h','PR一次通过率≥50%'] },
+  { q:2, title:'「AI辅助贡献马拉松」Hackathon',
+    pillars:[1,2], dims:['d4','d5'],
+    desc:'48h提交真实PR，AI工具使用展示，面向新开发者群体招募',
+    kpis:['100+参与者','50+合并PR','新人占比≥40%'] },
+  { q:2, title:'文档站AI搜索优化',
+    pillars:[0], dims:['d2'],
+    desc:'重写关键页面，提升内容密度和结构化，适配AI检索偏好',
+    kpis:['文档站流量+60%'] },
+
+  // Q3 沉淀深化
+  { q:3, title:'AI Review Bot全面覆盖',
+    pillars:[1], dims:['d3'],
+    desc:'推广至全部核心项目，建立Review SLA监控看板',
+    kpis:['所有核心项目覆盖','PR响应<48h'] },
+  { q:3, title:'贡献者实战案例库建设',
+    pillars:[1,2], dims:['d4','d5'],
+    desc:'收集20+个"AI辅助完成真实贡献"before/after案例，作为常设引导资源',
+    kpis:['20+案例发布','案例页月访问量'] },
+  { q:3, title:'年中开发者峰会（AI辅助贡献专场）',
+    pillars:[2], dims:['d5'],
+    desc:'设置AI辅助贡献工作流专场，邀请贡献者分享真实经验',
+    kpis:['300+到场','10+演讲','满意度≥4.2/5'] },
+  { q:3, title:'发布《社区项目AI友好度报告》',
+    pillars:[0], dims:['d1','d2'],
+    desc:'公开各项目AI友好度评分，建立透明度，驱动Maintainer主动改善',
+    kpis:['覆盖全部核心项目','被AI媒体/工具引用'] },
+
+  // Q4 收官展望
+  { q:4, title:'llms.txt协议全站部署',
+    pillars:[0], dims:['d2'],
+    desc:'在文档站部署llms.txt，让AI爬虫准确理解和引用社区内容',
+    kpis:['主流AI搜索引用基线建立'] },
+  { q:4, title:'多元贡献认可体系升级',
+    pillars:[2], dims:['d5'],
+    desc:'将文档/翻译/Issue质量/答疑纳入积分；颁发年度"AI时代贡献者"特别奖',
+    kpis:['非代码贡献者占比≥35%','多样性指数提升'] },
+  { q:4, title:'Buddy配对计划扩大',
+    pillars:[1,2], dims:['d4','d5'],
+    desc:'从试点扩展为常设机制，老贡献者带AI时代新开发者',
+    kpis:['Buddy满意度≥4.2/5','首贡献留存率≥35%'] },
+  { q:4, title:'年度AI Native成熟度评估',
+    pillars:[0,1,2], dims:['d1','d2','d3','d4','d5'],
+    desc:'对照本模型全年复盘，公开发布，驱动2027规划',
+    kpis:['年度报告发布','完成2027路线图社区共创'] }
+];
+
+const LEVELS = [
+  { min:5,  max:8,  label:'L1 - 初始级', desc:'基础薄弱，建议先补全项目文档和贡献指南',     bg:'#fee2e2', fg:'#dc2626' },
+  { min:9,  max:12, label:'L2 - 探索级', desc:'有零散尝试，选1-2个支柱集中突破',            bg:'#fef3c7', fg:'#d97706' },
+  { min:13, max:17, label:'L3 - 发展级', desc:'系统建设中，三支柱均有基本覆盖',              bg:'#dbeafe', fg:'#2563eb' },
+  { min:18, max:21, label:'L4 - 成熟级', desc:'三支柱全面落地，新开发者体验显著提升',        bg:'#d1fae5', fg:'#059669' },
+  { min:22, max:25, label:'L5 - 引领级', desc:'行业标杆，可对外输出AI Native社区最佳实践', bg:'#ede9fe', fg:'#7c3aed' }
+];
+
+// ═══════════════════ STATE ═══════════════════
+const cur = [3,3,3,3,3];
+const tgt = [4,4,4,4,4];
+function total(a){ return a.reduce((s,v)=>s+v,0); }
+function getLevel(s){ return LEVELS.find(l=>s>=l.min&&s<=l.max)||LEVELS[0]; }
+
+// Pillar score = sum of dims in that pillar
+function pillarScore(pi, arr){
+  return DIMS.filter(d=>d.pillar===pi).reduce((s,d,i)=>{
+    const di=DIMS.findIndex(x=>x.key===d.key);
+    return s+arr[di];
+  },0);
+}
+function pillarMax(pi){ return DIMS.filter(d=>d.pillar===pi).length*5; }
+
+// ═══════════════════ BUILD SLIDERS ═══════════════════
+function buildSliders(){
+  ['cur','tgt'].forEach(type=>{
+    const arr=type==='cur'?cur:tgt;
+    const el=document.getElementById(`${type}-sliders`);
+    el.innerHTML='';
+    PILLARS.forEach((p,pi)=>{
+      const pdims=DIMS.filter(d=>d.pillar===pi);
+      // pillar header
+      const ph=document.createElement('div');
+      ph.className='pillar-header';
+      ph.style.cssText=`background:${p.bg};border-left:3px solid ${p.color};`;
+      ph.innerHTML=`<span class="pillar-icon">${p.emoji}</span><div><div class="pillar-name" style="color:${p.fg};">${p.label}</div></div>`;
+      el.appendChild(ph);
+      pdims.forEach(d=>{
+        const di=DIMS.findIndex(x=>x.key===d.key);
+        const row=document.createElement('div');
+        row.className=`dim-row ${type==='tgt'?'tgt-row':''}`;
+        row.innerHTML=`
+          <div class="name" style="color:${d.color};">${d.emoji} ${d.label}</div>
+          <input type="range" min="1" max="5" value="${arr[di]}" id="${type}-sl-${di}" style="accent-color:${type==='cur'?d.color:'#e63946'};">
+          <div class="val" id="${type}-val-${di}">${arr[di]}</div>`;
+        el.appendChild(row);
+        document.getElementById(`${type}-sl-${di}`).addEventListener('input',e=>{
+          arr[di]=+e.target.value;
+          document.getElementById(`${type}-val-${di}`).textContent=arr[di];
+          update();
+        });
+      });
+      if(pi<PILLARS.length-1){
+        const div=document.createElement('div'); div.className='pillar-divider'; el.appendChild(div);
+      }
+    });
+  });
+}
+
+// ═══════════════════ RADAR ═══════════════════
+let rc;
+function buildRadar(){
+  rc=new Chart(document.getElementById('rc'),{
+    type:'radar',
+    data:{
+      labels:DIMS.map(d=>d.label),
+      datasets:[
+        { label:'当前', data:[...cur],
+          backgroundColor:'rgba(15,52,96,.12)', borderColor:'rgba(15,52,96,.9)',
+          borderWidth:2.5, pointBackgroundColor:'#0f3460', pointRadius:5 },
+        { label:'目标', data:[...tgt],
+          backgroundColor:'rgba(230,57,70,.07)', borderColor:'rgba(230,57,70,.7)',
+          borderWidth:2, borderDash:[4,3], pointBackgroundColor:'#e63946', pointRadius:4 },
+        { label:'行业优秀L4', data:[4,4,4,4,4],
+          backgroundColor:'transparent', borderColor:'rgba(148,163,184,.45)',
+          borderWidth:1.5, borderDash:[6,4], pointRadius:0 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ r:{
+        min:0, max:5,
+        ticks:{stepSize:1, font:{size:9}, color:'#bbb'},
+        grid:{color:'rgba(0,0,0,.06)'}, angleLines:{color:'rgba(0,0,0,.07)'},
+        pointLabels:{font:{size:11.5, weight:'600'}, color:'#333',
+          callback:(v,i)=>DIMS[i].emoji+' '+v}
+      }},
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}分`}}}
+    }
+  });
+}
+
+// ═══════════════════ PROGRESS CHART ═══════════════════
+let pc;
+function buildProgressChart(){
+  const datasets=PILLARS.map(p=>{
+    const pdims=DIMS.filter(d=>d.pillar===PILLARS.indexOf(p));
+    // calculate quarterly progression per pillar
+    const qMax=pillarMax(PILLARS.indexOf(p));
+    return {
+      label:`${p.emoji} ${p.label}（满分${qMax}）`,
+      data:[], borderColor:p.color, backgroundColor:p.color+'22',
+      tension:.35, pointRadius:4, fill:false
+    };
+  });
+  pc=new Chart(document.getElementById('progressChart'),{
+    type:'line',
+    data:{ labels:['现在','Q1末','Q2末','Q3末','Q4末'], datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        y:{min:0, ticks:{font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}},
+        x:{ticks:{font:{size:11}}}
+      },
+      plugins:{
+        legend:{position:'bottom', labels:{font:{size:11}, boxWidth:12, padding:10}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}
+      }
+    }
+  });
+}
+
+// ═══════════════════ PILLAR SCORE CARDS ═══════════════════
+function renderPillarScores(elId, arr, isTarget){
+  const el=document.getElementById(elId);
+  el.innerHTML='';
+  const row=document.createElement('div');
+  row.className='pillar-score-row';
+  PILLARS.forEach((p,pi)=>{
+    const sc=pillarScore(pi,arr), mx=pillarMax(pi);
+    const card=document.createElement('div');
+    card.className='pillar-score-card';
+    card.style.cssText=`background:${p.bg};border:1.5px solid ${p.color}30;`;
+    card.innerHTML=`
+      <div class="ps-num" style="color:${isTarget?'#e63946':p.color};">${sc}</div>
+      <div class="ps-max" style="color:${p.fg};">/${mx}</div>
+      <div class="ps-label" style="color:${p.fg};">${p.emoji} ${p.label}</div>`;
+    row.appendChild(card);
+  });
+  el.appendChild(row);
+}
+
+// ═══════════════════ KPI PREVIEW ═══════════════════
+function buildKpiPreview(){
+  const el=document.getElementById('kpi-preview');
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">';
+  PILLARS.forEach((p,pi)=>{
+    const pdims=DIMS.filter(d=>d.pillar===pi);
+    const allkpis=pdims.flatMap(d=>d.kpis);
+    el.innerHTML+=`
+      <div style="border-radius:10px;border:1.5px solid ${p.color}30;overflow:hidden;">
+        <div style="background:${p.bg};padding:9px 14px;font-size:12px;font-weight:800;color:${p.fg};">${p.emoji} ${p.label}</div>
+        <div style="padding:10px 12px;">
+          ${allkpis.map(k=>`
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:11px;padding:5px 0;border-bottom:1px solid #f5f5f5;">
+              <span style="color:#444;flex:1;">${k.label}</span>
+              <span style="font-weight:700;color:${p.color};font-size:10.5px;margin-left:8px;text-align:right;">${k.target}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  });
+  el.innerHTML+='</div>';
+}
+
+// ═══════════════════ ROADMAP ═══════════════════
+function buildRoadmap(){
+  const qNames=['q1','q2','q3','q4'];
+  const qTitles=['Q1：夯实基础','Q2：激活贡献','Q3：深化沉淀','Q4：收官展望'];
+  const el=document.getElementById('roadmap-grid');
+  el.innerHTML='';
+  [1,2,3,4].forEach(q=>{
+    const inits=INITIATIVES.filter(i=>i.q===q);
+    const col=document.createElement('div');
+    col.className='q-card';
+    col.innerHTML=`
+      <div class="q-head ${qNames[q-1]}h">${qTitles[q-1]}<span style="font-size:10px;">${inits.length}项</span></div>
+      <div class="q-body">
+        ${inits.map(ini=>{
+          // highlight if any pillar has gap
+          const hasGap=ini.pillars.some(pi=>tgt[DIMS.findIndex(d=>d.pillar===pi)]>cur[DIMS.findIndex(d=>d.pillar===pi)]);
+          return `<div class="initiative ${qNames[q-1]}i" style="${hasGap?'box-shadow:0 0 0 1.5px '+PILLARS[ini.pillars[0]].color+'60;':''}">
+            <strong>${ini.title}</strong>
+            <div style="color:#666;margin-top:2px;">${ini.desc}</div>
+            <div class="pillar-tags">
+              ${ini.pillars.map(pi=>`<span class="pillar-tag" style="background:${PILLARS[pi].bg};color:${PILLARS[pi].fg};">${PILLARS[pi].emoji}${PILLARS[pi].label}</span>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    el.appendChild(col);
+  });
+}
+
+// Level table
+function buildLevelTable(){
+  const tb=document.getElementById('level-table');
+  tb.innerHTML=LEVELS.map(l=>`
+    <tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;">
+        <span style="display:inline-block;padding:2px 9px;border-radius:10px;background:${l.bg};color:${l.fg};font-size:11px;font-weight:700;">${l.label}</span>
+      </td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;font-weight:700;color:#555;">${l.min}–${l.max}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#666;">${l.desc}</td>
+    </tr>`).join('');
+}
+
+// ═══════════════════ DIM PANELS ═══════════════════
+function buildDimNav(){
+  const nav=document.getElementById('dim-nav');
+  nav.innerHTML='';
+  DIMS.forEach((d,i)=>{
+    const p=PILLARS[d.pillar];
+    const btn=document.createElement('button');
+    btn.className='dim-nav-btn'+(i===0?' active':'');
+    btn.style.cssText=i===0?`border-color:${d.color};color:${d.color};background:${d.bgcls.replace('dbg','')};`:'';
+    btn.innerHTML=`${d.emoji} ${d.label} <span style="font-size:9px;padding:1px 5px;border-radius:8px;background:${p.bg};color:${p.fg};margin-left:4px;">${p.emoji}${p.label}</span>`;
+    btn.onclick=()=>showDim(i);
+    nav.appendChild(btn);
+  });
+}
+
+function showDim(idx){
+  document.querySelectorAll('.dim-nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active',i===idx);
+    if(i===idx){ const d=DIMS[i]; b.style.cssText=`border-color:${d.color};color:${d.color};background:${d.color}12;`; }
+    else b.style.cssText='';
+  });
+  document.querySelectorAll('.dim-panel').forEach((p,i)=>p.classList.toggle('open',i===idx));
+}
+
+function buildDimPanels(){
+  const container=document.getElementById('dim-panels');
+  container.innerHTML='';
+  DIMS.forEach((d,di)=>{
+    const p=PILLARS[d.pillar];
+    const relInits=INITIATIVES.filter(i=>i.dims.includes(d.key));
+    const panel=document.createElement('div');
+    panel.className='dim-panel'+(di===0?' open':'');
+    panel.innerHTML=`
+      <div style="background:${p.bg};border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:22px;">${d.emoji}</span>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:${d.color};">${d.label}</div>
+          <div style="font-size:11px;color:${p.fg};">${p.emoji} ${p.label}支柱 · ${d.desc}</div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <h2>📋 1-5分评分细则</h2>
+          <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;font-size:12px;">
+            <span>当前：<strong style="color:${d.color};">${cur[di]}分</strong></span>
+            <span>目标：<strong style="color:#e63946;">${tgt[di]}分</strong></span>
+            <span style="background:${tgt[di]>cur[di]?'#fff0f1':'#f0fdf4'};color:${tgt[di]>cur[di]?'#e63946':'#059669'};padding:2px 10px;border-radius:10px;font-weight:700;">
+              差距：${tgt[di]>cur[di]?'+':''}${tgt[di]-cur[di]}
+            </span>
+          </div>
+          ${d.rubric.map((r,i)=>{
+            const sc=i+1, isCur=sc===cur[di], isTgt=sc===tgt[di], isDone=sc<cur[di];
+            return `<div class="rubric-row ${isCur?'cur-row':isTgt?'tgt-row':isDone?'done-row':''}">
+              <div class="sdot" style="background:${sc<=cur[di]?d.color+'25':'#f1f5f9'};color:${sc<=cur[di]?d.color:'#ccc'};">${sc}</div>
+              <div>${r}
+                ${isCur?`<span style="background:#dbeafe;color:#1d4ed8;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:5px;">当前</span>`:''}
+                ${isTgt?`<span style="background:#ffe4e6;color:#be123c;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:5px;">目标</span>`:''}
+                ${isDone?`<span style="background:#d1fae5;color:#059669;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:5px;">✓ 已达</span>`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div>
+          <div class="card mb">
+            <h2>🗓 关联季度行动</h2>
+            ${relInits.map(ini=>`
+              <div class="ini-link">
+                <span class="qb qb${ini.q}">Q${ini.q}</span>
+                <strong>${ini.title}</strong>
+                <br><span style="color:#666;font-size:11px;">${ini.desc}</span>
+                <div style="margin-top:5px;">${ini.kpis.map(k=>`<span class="kpi-chip">${k}</span>`).join('')}</div>
+              </div>`).join('')
+            || '<p style="font-size:12px;color:#aaa;">暂无直接关联行动</p>'}
+          </div>
+          <div class="card">
+            <h2>📊 关联 KPI（来自运营计划）</h2>
+            ${d.kpis.map(k=>`
+              <div style="padding:8px 10px;background:#f8f9ff;border-radius:7px;margin-bottom:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                  <span style="font-size:12px;font-weight:600;">${k.label}</span>
+                  <span style="font-size:11px;font-weight:700;color:${d.color};text-align:right;flex-shrink:0;">${k.target}</span>
+                </div>
+                <div style="font-size:10px;color:#aaa;margin-top:3px;">追踪频率：${k.freq} · 来源：${k.from}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(panel);
+  });
+}
+
+// ═══════════════════ UPDATE ═══════════════════
+function update(){
+  // Radar
+  rc.data.datasets[0].data=[...cur];
+  rc.data.datasets[1].data=[...tgt];
+  rc.update('active');
+
+  // Totals
+  const ct=total(cur), tt=total(tgt);
+  const cl=getLevel(ct), tl=getLevel(tt);
+  document.getElementById('cur-total').innerHTML=`${ct}<span>/25</span>`;
+  const cp=document.getElementById('cur-level'); cp.textContent=cl.label; cp.style.background=cl.bg; cp.style.color=cl.fg;
+  document.getElementById('cur-desc').textContent=cl.desc;
+  document.getElementById('tgt-total').innerHTML=`${tt}<span>/25</span>`;
+  const tp=document.getElementById('tgt-level'); tp.textContent=tl.label; tp.style.background=tl.bg; tp.style.color=tl.fg;
+  document.getElementById('tgt-desc').textContent=tl.desc;
+
+  // Pillar score cards
+  renderPillarScores('pillar-cur-scores', cur, false);
+  renderPillarScores('pillar-tgt-scores', tgt, true);
+
+  // Gap analysis
+  const dimGaps=DIMS.map((d,i)=>({d,i,gap:tgt[i]-cur[i]})).sort((a,b)=>b.gap-a.gap);
+  document.getElementById('gap-analysis').innerHTML=dimGaps.map(g=>`
+    <div class="gap-row">
+      <span style="width:96px;font-size:11px;font-weight:600;color:${g.d.color};">${g.d.emoji} ${g.d.label}</span>
+      <div class="gap-bar-wrap">
+        <div class="gap-bar-fill" style="width:${cur[g.i]/5*100}%;background:${g.d.color};opacity:.8;"></div>
+      </div>
+      <span style="font-size:11px;font-weight:700;color:${g.gap>0?g.d.color:'#10b981'};width:36px;text-align:right;">
+        ${g.gap>0?'+'+g.gap:g.gap===0?'✓':g.gap}
+      </span>
+    </div>`).join('');
+
+  // Top actions
+  const top=dimGaps.filter(g=>g.gap>0).slice(0,3);
+  document.getElementById('top-actions').innerHTML=top.map((g,r)=>{
+    const ini=INITIATIVES.find(i=>i.dims.includes(g.d.key));
+    return `${r+1}. <span style="background:${PILLARS[g.d.pillar].bg};color:${PILLARS[g.d.pillar].fg};padding:1px 7px;border-radius:8px;font-size:10.5px;font-weight:700;">${PILLARS[g.d.pillar].emoji}${PILLARS[g.d.pillar].label}</span> <strong>${g.d.label}</strong>（差距+${g.gap}）<br>   → ${ini?ini.title:'补充专项行动'}`;
+  }).join('<br>') || '<span style="color:#10b981;">✓ 所有维度已达目标！</span>';
+
+  // Progress chart
+  const qGroups=[[],[],[],[]];
+  INITIATIVES.forEach(ini=>qGroups[ini.q-1].push(ini));
+  // Per-pillar progression
+  PILLARS.forEach((p,pi)=>{
+    const pdims=DIMS.filter(d=>d.pillar===pi);
+    const pts=[pillarScore(pi,cur)];
+    let scores=[...cur];
+    qGroups.forEach(qInits=>{
+      // apply delta from this quarter's initiatives for this pillar
+      qInits.filter(i=>i.pillars.includes(pi)).forEach(ini=>{
+        pdims.forEach(d=>{
+          const di=DIMS.findIndex(x=>x.key===d.key);
+          if(ini.dims.includes(d.key)) scores[di]=Math.min(5,scores[di]+1);
+        });
+      });
+      pts.push(pillarScore(pi,scores));
+    });
+    pc.data.datasets[pi].data=pts;
+    const mx=pillarMax(pi);
+    pc.options.scales.y.max=Math.max(pc.options.scales.y.max||0, mx+1);
+  });
+  pc.update('active');
+
+  // Rebuild detail panels
+  buildDimPanels();
+  buildDimNav();
+  const ai=[...document.querySelectorAll('.dim-nav-btn')].findIndex(b=>b.classList.contains('active'));
+  if(ai>=0)showDim(ai);
+
+  // Roadmap highlight refresh
+  buildRoadmap();
+}
+
+// ═══════════════════ TAB SWITCH ═══════════════════
+function switchTab(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════ INIT ═══════════════════
+buildSliders();
+buildRadar();
+buildProgressChart();
+buildRoadmap();
+buildLevelTable();
+buildKpiPreview();
+buildDimNav();
+buildDimPanels();
+update();
+</script>
+</body>
+</html>

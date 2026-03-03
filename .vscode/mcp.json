@@ -1,0 +1,16 @@
+{
+	"servers": {
+		"gitcode-mcp": {
+			"type": "stdio",
+			"command": "python",
+			"args": [
+				"-m",
+				"gitcode_mcp"
+			],
+            "env": {
+                "GITCODE_TOKEN": "Yaia3ixNHxMLYmJx-heQLUF8"
+            }
+		}
+	},
+	"inputs": []
+}

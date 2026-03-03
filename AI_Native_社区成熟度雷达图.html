@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Native 社区成熟度雷达图</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      padding: 32px 40px 28px;
+    }
+    header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    header p { font-size: 13px; opacity: 0.7; }
+    .main { display: grid; grid-template-columns: 1fr 400px; gap: 24px; padding: 28px 40px; max-width: 1280px; margin: 0 auto; }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card h2 { font-size: 15px; font-weight: 700; color: #0f3460; margin-bottom: 20px; letter-spacing: 0.3px; }
+    .chart-wrap { position: relative; height: 420px; display: flex; align-items: center; justify-content: center; }
+
+    /* Sliders */
+    .dim-list { display: flex; flex-direction: column; gap: 18px; }
+    .dim-item label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; font-weight: 600; margin-bottom: 7px; color: #333;
+    }
+    .dim-item label .score-badge {
+      background: #0f3460; color: white;
+      border-radius: 20px; padding: 2px 10px;
+      font-size: 12px; font-weight: 700; min-width: 32px; text-align: center;
+    }
+    .dim-item .desc { font-size: 11px; color: #888; margin-bottom: 7px; line-height: 1.5; }
+    input[type=range] {
+      width: 100%; height: 6px; cursor: pointer; accent-color: #0f3460;
+    }
+
+    /* Score summary */
+    .score-summary {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #f0f4ff, #e8eeff);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .total-score { font-size: 48px; font-weight: 800; color: #0f3460; line-height: 1; }
+    .total-score span { font-size: 20px; opacity: 0.5; }
+    .level-label {
+      margin-top: 8px;
+      font-size: 14px; font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    .level-desc { font-size: 12px; color: #666; margin-top: 8px; line-height: 1.5; }
+
+    /* Level table */
+    .level-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+    .level-table th { background: #f5f7fa; padding: 8px 10px; text-align: left; font-weight: 600; color: #555; }
+    .level-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+    .level-table tr:last-child td { border-bottom: none; }
+    .level-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* Bottom section */
+    .bottom { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .rubric-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 4px; }
+    .rubric-col h4 { font-size: 11px; font-weight: 700; color: #0f3460; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 2px solid #e8eeff; }
+    .rubric-item {
+      font-size: 10.5px; color: #555; line-height: 1.5;
+      padding: 6px 8px;
+      background: #f8f9ff;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+    .rubric-item strong { color: #0f3460; display: block; margin-bottom: 2px; }
+
+    .tip-list { list-style: none; }
+    .tip-list li {
+      font-size: 12px; color: #444; line-height: 1.6;
+      padding: 8px 12px; border-left: 3px solid #0f3460;
+      background: #f8f9ff; margin-bottom: 8px; border-radius: 0 8px 8px 0;
+    }
+    .tip-list li strong { color: #0f3460; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .bottom { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AI Native 开源社区成熟度评估</h1>
+  <p>拖动滑块为社区评分，雷达图实时更新 · 满分 25 分</p>
+</header>
+
+<div class="main">
+
+  <!-- 左：雷达图 + 分数 -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div class="card">
+      <h2>🕸 成熟度雷达图</h2>
+      <div class="chart-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📊 综合得分</h2>
+      <div class="score-summary">
+        <div class="total-score" id="totalScore">15<span>/25</span></div>
+        <div class="level-label" id="levelLabel">L3 - 发展级</div>
+        <div class="level-desc" id="levelDesc">有系统性建设，大部分维度达到基本水平</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：滑块控制 + 等级说明 -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <div class="card">
+      <h2>🎚 各维度评分</h2>
+      <div class="dim-list" id="dimList"></div>
+    </div>
+    <div class="card">
+      <h2>📋 成熟度等级</h2>
+      <table class="level-table">
+        <thead>
+          <tr><th>等级</th><th>分值</th><th>描述</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="level-badge" style="background:#fee2e2;color:#dc2626;">L1</span></td><td>5–8</td><td>初始级：基础薄弱</td></tr>
+          <tr><td><span class="level-badge" style="background:#fef3c7;color:#d97706;">L2</span></td><td>9–12</td><td>探索级：局部尝试</td></tr>
+          <tr><td><span class="level-badge" style="background:#dbeafe;color:#2563eb;">L3</span></td><td>13–17</td><td>发展级：系统建设</td></tr>
+          <tr><td><span class="level-badge" style="background:#d1fae5;color:#059669;">L4</span></td><td>18–21</td><td>成熟级：全面落地</td></tr>
+          <tr><td><span class="level-badge" style="background:#ede9fe;color:#7c3aed;">L5</span></td><td>22–25</td><td>引领级：行业标杆</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 底部：评分细则 + 建议 -->
+  <div class="bottom">
+    <div class="card">
+      <h2>📖 各维度 1-5 分说明</h2>
+      <div class="rubric-grid" id="rubricGrid"></div>
+    </div>
+    <div class="card">
+      <h2>💡 提升建议（基于当前评分）</h2>
+      <ul class="tip-list" id="tipList"></ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DIMS = [
+  {
+    key: "readability",
+    label: "项目可读性",
+    emoji: "📄",
+    desc: "项目文档结构化程度，AI 工具能否准确理解项目",
+    rubric: [
+      "无 README 或内容极少，无贡献指南",
+      "有基础 README，结构混乱；缺 CONTRIBUTING",
+      "README 结构完整；有 CONTRIBUTING.md",
+      "有架构文档、CHANGELOG；CONTRIBUTING 含具体步骤",
+      "有 CLAUDE.md/copilot-instructions；文档有专人维护"
+    ],
+    tips: [
+      { score: [1,2], text: "<strong>优先行动：</strong>为 Top 5 项目补全 README（功能/安装/使用三段式）和 CONTRIBUTING.md" },
+      { score: [3], text: "<strong>下一步：</strong>为核心项目添加 CLAUDE.md，帮助 AI IDE 快速理解项目约定" },
+      { score: [4,5], text: "<strong>保持领先：</strong>建立文档新鲜度检查机制，PR 合并时触发文档更新检查" }
+    ]
+  },
+  {
+    key: "contribution",
+    label: "贡献流程 AI 化",
+    emoji: "🔄",
+    desc: "AI 工具能辅助完成贡献流程的程度",
+    rubric: [
+      "无 Issue/PR 模板，无自动化",
+      "有基础模板；有简单 CI",
+      "Good First Issue 有规范标签；CI 覆盖测试",
+      "GFI 描述详细含文件路径；有 PR 示例；AI Review Bot 试点",
+      "GFI 附 AI 辅助提示；AI Review 全覆盖；PR 响应 <48h"
+    ],
+    tips: [
+      { score: [1,2], text: "<strong>优先行动：</strong>统一 Good First Issue 标签，制定包含「背景/文件/完成标准」的 Issue 模板" },
+      { score: [3], text: "<strong>下一步：</strong>引入 CodeRabbit 等 AI Review Bot 在 1-2 个项目试点" },
+      { score: [4,5], text: "<strong>保持领先：</strong>统计 PR 平均 Review 时间，设定 SLA 目标并公开追踪" }
+    ]
+  },
+  {
+    key: "devex",
+    label: "开发者体验",
+    emoji: "🧑‍💻",
+    desc: "AI 编程工具用户的上手体验和引导质量",
+    rubric: [
+      "无新手引导，新人完全自行摸索",
+      "有基础文档，未针对 AI 工具用户设计",
+      "新手引导含 AI 工具内容；有 Buddy 机制",
+      "有 AI 辅助贡献专属路径；提供 Prompt/配置模板",
+      "新人用 AI 可在 2h 内完成首贡献；有数据验证"
+    ],
+    tips: [
+      { score: [1,2], text: "<strong>优先行动：</strong>设计「面向 AI 工具用户的新手引导页」，包含工具推荐和配置步骤" },
+      { score: [3], text: "<strong>下一步：</strong>举办「直播：AI 辅助完成一个真实 Issue」，录制后作为常设引导资源" },
+      { score: [4,5], text: "<strong>保持领先：</strong>定期做新人旅程测试（找人走一遍流程），持续优化卡点" }
+    ]
+  },
+  {
+    key: "discoverability",
+    label: "内容可发现性",
+    emoji: "🔍",
+    desc: "社区内容被 AI 搜索工具检索和推荐的能力",
+    rubric: [
+      "文档散乱，无独立站点",
+      "有文档站，内容更新滞后，无 SEO",
+      "文档完整清晰；GitHub Topics 规范；基础 SEO",
+      "内容高密度、结构化；适配 AI 搜索写作规范",
+      "支持 llms.txt；有证据被 AI 搜索引用；定期验证"
+    ],
+    tips: [
+      { score: [1,2], text: "<strong>优先行动：</strong>建立独立文档站（VitePress/Docusaurus），统一 GitHub Topics 标签" },
+      { score: [3], text: "<strong>下一步：</strong>在文档中增加「具体数据和操作步骤」，减少模糊描述，提升 AI 引用概率" },
+      { score: [4,5], text: "<strong>保持领先：</strong>部署 llms.txt；每季度在 Perplexity/ChatGPT 中测试社区内容被引用情况" }
+    ]
+  },
+  {
+    key: "culture",
+    label: "社区 AI 文化",
+    emoji: "🌱",
+    desc: "社区对 AI 辅助开发的包容度和推广力度",
+    rubric: [
+      "无明确立场；部分 Maintainer 排斥 AI 贡献",
+      "默许 AI 辅助，无政策，无活动",
+      "有 AI 辅助贡献政策；每季度有相关活动",
+      "积极推广；贡献认可包含文档/翻译等多元形式",
+      "AI 时代新开发者占月新增贡献者 ≥30%；有数据"
+    ],
+    tips: [
+      { score: [1,2], text: "<strong>优先行动：</strong>发布「AI 辅助贡献政策」，明确允许并注明质量要求（不降低 Review 标准）" },
+      { score: [3], text: "<strong>下一步：</strong>扩展贡献认可体系，将文档改进、翻译、Issue 质量纳入贡献积分" },
+      { score: [4,5], text: "<strong>保持领先：</strong>统计并公开贡献者构成数据，将多样性指标纳入年度社区报告" }
+    ]
+  }
+];
+
+// Init scores
+const scores = { readability: 3, contribution: 3, devex: 3, discoverability: 3, culture: 3 };
+
+// Build sliders
+const dimList = document.getElementById("dimList");
+DIMS.forEach(d => {
+  const div = document.createElement("div");
+  div.className = "dim-item";
+  div.innerHTML = `
+    <label>
+      <span>${d.emoji} ${d.label}</span>
+      <span class="score-badge" id="badge-${d.key}">${scores[d.key]}</span>
+    </label>
+    <div class="desc">${d.desc}</div>
+    <input type="range" min="1" max="5" value="${scores[d.key]}" id="slider-${d.key}">
+  `;
+  dimList.appendChild(div);
+  document.getElementById(`slider-${d.key}`).addEventListener("input", e => {
+    scores[d.key] = parseInt(e.target.value);
+    document.getElementById(`badge-${d.key}`).textContent = scores[d.key];
+    update();
+  });
+});
+
+// Build rubric grid
+const rubricGrid = document.getElementById("rubricGrid");
+DIMS.forEach(d => {
+  const col = document.createElement("div");
+  col.className = "rubric-col";
+  col.innerHTML = `<h4>${d.emoji} ${d.label}</h4>` +
+    d.rubric.map((r, i) => `<div class="rubric-item"><strong>${i+1}分</strong>${r}</div>`).join("");
+  rubricGrid.appendChild(col);
+});
+
+// Chart
+const ctx = document.getElementById("radarChart").getContext("2d");
+const radarChart = new Chart(ctx, {
+  type: "radar",
+  data: {
+    labels: DIMS.map(d => d.label),
+    datasets: [
+      {
+        label: "当前评分",
+        data: DIMS.map(d => scores[d.key]),
+        backgroundColor: "rgba(15, 52, 96, 0.15)",
+        borderColor: "rgba(15, 52, 96, 0.9)",
+        borderWidth: 2.5,
+        pointBackgroundColor: "rgba(15, 52, 96, 1)",
+        pointRadius: 5,
+        pointHoverRadius: 7
+      },
+      {
+        label: "行业优秀水平 (L4)",
+        data: [4, 4, 4, 4, 4],
+        backgroundColor: "rgba(99, 179, 237, 0.05)",
+        borderColor: "rgba(99, 179, 237, 0.5)",
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0, max: 5,
+        ticks: { stepSize: 1, font: { size: 10 }, color: "#999" },
+        grid: { color: "rgba(0,0,0,0.07)" },
+        angleLines: { color: "rgba(0,0,0,0.08)" },
+        pointLabels: { font: { size: 12, weight: "600" }, color: "#333" }
+      }
+    },
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { font: { size: 12 }, boxWidth: 14, padding: 16 }
+      },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} 分`
+        }
+      }
+    }
+  }
+});
+
+const LEVELS = [
+  { min:5,  max:8,  label:"L1 - 初始级", desc:"尚未系统化建设，建议优先补全基础文档和贡献指南",  color:"#fee2e2", text:"#dc2626" },
+  { min:9,  max:12, label:"L2 - 探索级", desc:"已有零散尝试，建议选 1-2 个维度集中突破",        color:"#fef3c7", text:"#d97706" },
+  { min:13, max:17, label:"L3 - 发展级", desc:"有系统性建设，大部分维度达到基本水平",           color:"#dbeafe", text:"#2563eb" },
+  { min:18, max:21, label:"L4 - 成熟级", desc:"AI Native 理念全面落地，开发者体验显著提升",    color:"#d1fae5", text:"#059669" },
+  { min:22, max:25, label:"L5 - 引领级", desc:"行业标杆，能输出最佳实践影响更大生态",           color:"#ede9fe", text:"#7c3aed" }
+];
+
+function getLevel(total) {
+  return LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
+}
+
+function buildTips() {
+  const tipList = document.getElementById("tipList");
+  tipList.innerHTML = "";
+  DIMS.forEach(d => {
+    const s = scores[d.key];
+    const tip = d.tips.find(t => t.score.includes(s));
+    if (tip) {
+      const li = document.createElement("li");
+      li.innerHTML = `<span style="font-size:11px;color:#888;">${d.emoji} ${d.label}</span><br>${tip.text}`;
+      tipList.appendChild(li);
+    }
+  });
+}
+
+function update() {
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const level = getLevel(total);
+
+  // Update chart
+  radarChart.data.datasets[0].data = DIMS.map(d => scores[d.key]);
+  radarChart.update("active");
+
+  // Update score display
+  document.getElementById("totalScore").innerHTML = `${total}<span>/25</span>`;
+  const ll = document.getElementById("levelLabel");
+  ll.textContent = level.label;
+  ll.style.background = level.color;
+  ll.style.color = level.text;
+  document.getElementById("levelDesc").textContent = level.desc;
+
+  buildTips();
+}
+
+update();
+</script>
+</body>
+</html>
